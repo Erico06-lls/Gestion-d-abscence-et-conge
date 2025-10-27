@@ -9,10 +9,12 @@ import lombok.Setter;
 @Setter
 public class CongeResponseDTO {
     private Long id;
+    private Long employeId;
     private String employeNom;
     private String typeConge;
     private LocalDate dateDebut;
     private LocalDate dateFin;
-    private String status;
+    private int nombreJours;
+    private String statut;
     private String commentaire;
 }

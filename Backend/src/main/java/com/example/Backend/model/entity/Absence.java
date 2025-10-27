@@ -22,11 +22,9 @@ public class Absence {
     @JoinColumn(name="employe_id")
     private Employe employe;
 
-    private java.time.LocalDate dateAbsence;
+    private java.time.LocalDate date;
 
-    private boolean justifie;
-
-    private String commentaire;
+    private String motif;
 
     private String justificatif;
 }

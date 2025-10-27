@@ -1,5 +1,6 @@
 package com.example.Backend.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,7 +17,7 @@ public class EmployeService {
 
     @Autowired
     private EmployeRepository employeRepository;
-
+    // Ajout d'un employe
     public EmployeResponseDTO createEmploye(CreateEmployeDTO dto) {
         Employe employe = new Employe();
         employe.setNom(dto.getNom());
@@ -24,20 +25,28 @@ public class EmployeService {
         employe.setPoste(dto.getPoste());
         employe.setEmail(dto.getEmail());
 
+        if (dto.getSoldeConges() != null) {
+            employe.setSoldeConges(dto.getSoldeConges());
+        } else {
+            employe.setSoldeConges(BigDecimal.valueOf(25)); // Valeur par defaut
+        }
+
         Employe saved = employeRepository.save(employe);
 
         return mapToDTO(saved);
     }
-
+    // Liste de tout les employes
     public List<EmployeResponseDTO> getAllEmployes() {
         return employeRepository.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
+    // Liste en fonction de l'Id
     public EmployeResponseDTO getEmployeById(Long id) {
         Employe employe = employeRepository.findById(id).orElseThrow(() -> new RuntimeException("Employe non trouve"));
         return mapToDTO(employe);
     }
 
+    // MAJ d'un employe
     public EmployeResponseDTO updateEmploye(Long id, CreateEmployeDTO dto) {
         Employe employe = employeRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Employe non trouve"));
@@ -46,13 +55,18 @@ public class EmployeService {
         employe.setPoste(dto.getPoste());
         employe.setEmail(dto.getEmail());
 
+        if (dto.getSoldeConges() != null) {
+            employe.setSoldeConges(dto.getSoldeConges());
+        }
+
         Employe updated = employeRepository.save(employe);
         return mapToDTO(updated);
     }
 
+    // Suppression d'un employe
     public void deleteEmploye(Long id){
         if (!employeRepository.existsById(id)) {
-            throw new RuntimeException("Employe non trouve");
+            throw new RuntimeException("Employe introuvable");
         }
         employeRepository.deleteById(id);
     }

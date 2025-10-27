@@ -1,6 +1,8 @@
 package com.example.Backend.model.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -28,8 +30,11 @@ public class Conge {
 
     private java.time.LocalDate dateDebut;
     private java.time.LocalDate dateFin;
+    private int nombreJours;
+
     
-    private String statut = "EN ATTENTE";
+    @Enumerated(EnumType.STRING)
+    private StatutConge statut = StatutConge.EN_ATTENTE;
 
     private String commentaire;
 }
