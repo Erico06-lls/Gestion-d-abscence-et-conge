@@ -2,9 +2,11 @@ package com.example.Backend.controller;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -70,6 +72,12 @@ public class AbsenceController {
         return absenceService.getAbsencesWithoutJustificatif();
     }
 
+    @GetMapping("/{id}")
+    public AbsenceResponseDTO getAbsenceById(@PathVariable Long id) {
+        return absenceService.getAbsenceById(id);
+    }
+    
+
     @PutMapping("/{id}")
     public AbsenceResponseDTO updateAbsence(@PathVariable Long id, @RequestBody AbsenceRequestDTO dto) {
         return absenceService.updateAbsence(id, dto);
@@ -78,5 +86,11 @@ public class AbsenceController {
     @DeleteMapping("/{id}")
     public void deleteAbsence(@PathVariable Long id) {
         absenceService.deleteAbsence(id);
+    }
+
+    @PatchMapping("/{id}/justificatif")
+    public AbsenceResponseDTO addJustificatif(@PathVariable Long id, @RequestBody Map<String, String> body){
+        String justifcatif = body.get("justificatif");
+        return absenceService.addJustificatif(id, justifcatif);
     }
 }

@@ -60,6 +60,17 @@ public class AbsenceService {
         absenceRepository.delete(absence);
     }
 
+    // Ajouter un justificatif
+    public AbsenceResponseDTO addJustificatif(Long id, String justificatif) {
+        Absence absence = absenceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Absence introuvable"));
+        
+        absence.setJustificatif(justificatif);
+        Absence updated = absenceRepository.save(absence);
+
+        return mapToDTO(updated);
+    }
+
     // Recuperer toutes les absences
     public List<AbsenceResponseDTO> getAllAbsences() {
         return absenceRepository.findAll()
@@ -90,6 +101,12 @@ public class AbsenceService {
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
+    }
+    // Recuperer absences par son Id
+    public AbsenceResponseDTO getAbsenceById(Long id) {
+        Absence absence = absenceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Absence introuvable"));
+        return mapToDTO(absence);
     }
 
     // Recuperer absences d'un employe dans une periode
