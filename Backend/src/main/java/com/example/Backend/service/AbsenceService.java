@@ -10,18 +10,27 @@ import com.example.Backend.model.DTO.Absence.AbsenceRequestDTO;
 import com.example.Backend.model.DTO.Absence.AbsenceResponseDTO;
 import com.example.Backend.model.entity.Absence;
 import com.example.Backend.model.entity.Employe;
+import com.example.Backend.model.entity.User;
 import com.example.Backend.repository.AbsenceRepository;
 import com.example.Backend.repository.EmployeRepository;
+import com.example.Backend.repository.UserRepository;
 
 @Service
 public class AbsenceService {
 
     private final AbsenceRepository absenceRepository;
     private final EmployeRepository employeRepository;
+    private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
-    public AbsenceService(AbsenceRepository absenceRepository, EmployeRepository employeRepository) {
+    public AbsenceService(AbsenceRepository absenceRepository, 
+                         EmployeRepository employeRepository,
+                         UserRepository userRepository,
+                         NotificationService notificationService) {
         this.absenceRepository = absenceRepository;
         this.employeRepository = employeRepository;
+        this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     // Creer une absence
@@ -36,6 +45,13 @@ public class AbsenceService {
         absence.setJustificatif(dto.getJustificatif());
 
         Absence saved = absenceRepository.save(absence);
+
+        // 🔔 NOTIFICATION: Envoyer une notification à l'ADMIN
+        User admin = userRepository.findByRole("ADMIN");
+        if (admin != null) {
+            String message = "Nouvelle déclaration d'absence pour " + employe.getNom() + " " + employe.getPrenom() + " - " + dto.getDate();
+            notificationService.sendNotification(admin.getId(), message);
+        }
         return mapToDTO(saved);
     }
 
@@ -50,6 +66,14 @@ public class AbsenceService {
         if (dto.getJustificatif() != null) absence.setJustificatif(dto.getJustificatif());
 
         Absence updated = absenceRepository.save(absence);
+
+        // 🔔 NOTIFICATION: Notifier l'admin de la modification
+        User admin = userRepository.findByRole("ADMIN");
+        if (admin != null) {
+            String message = "Absence modifiée pour " + absence.getEmploye().getNom() + " " + absence.getEmploye().getPrenom();
+            notificationService.sendNotification(admin.getId(), message);
+        }
+
         return mapToDTO(updated);
     }
 
@@ -58,6 +82,16 @@ public class AbsenceService {
         Absence absence = absenceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Absence introuvable"));
         absenceRepository.delete(absence);
+
+        Employe employe = absence.getEmploye();
+        absenceRepository.delete(absence);
+
+        // 🔔 NOTIFICATION: Notifier l'admin de la suppression
+        User admin = userRepository.findByRole("ADMIN");
+        if (admin != null) {
+            String message = "Absence supprimée pour " + employe.getNom() + " " + employe.getPrenom() + " - " + absence.getDate();
+            notificationService.sendNotification(admin.getId(), message);
+        }
     }
 
     // Ajouter un justificatif
@@ -67,6 +101,13 @@ public class AbsenceService {
         
         absence.setJustificatif(justificatif);
         Absence updated = absenceRepository.save(absence);
+
+        // 🔔 NOTIFICATION: Notifier l'admin du justificatif ajouté
+        User admin = userRepository.findByRole("ADMIN");
+        if (admin != null) {
+            String message = "Justificatif ajouté pour l'absence de " + absence.getEmploye().getNom() + " " + absence.getEmploye().getPrenom();
+            notificationService.sendNotification(admin.getId(), message);
+        }
 
         return mapToDTO(updated);
     }

@@ -14,9 +14,11 @@ import com.example.Backend.model.entity.Conge;
 import com.example.Backend.model.entity.Employe;
 import com.example.Backend.model.entity.StatutConge;
 import com.example.Backend.model.entity.TypeConge;
+import com.example.Backend.model.entity.User;
 import com.example.Backend.repository.CongeRepository;
 import com.example.Backend.repository.EmployeRepository;
 import com.example.Backend.repository.TypeCongeRepository;
+import com.example.Backend.repository.UserRepository;
 
 @Service
 public class CongeService {
@@ -29,6 +31,12 @@ public class CongeService {
 
     @Autowired
     private TypeCongeRepository typeCongeRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private NotificationService notificationService;
 
     // Creation d'un conge(demande de conge)
     public CongeResponseDTO createConge(CreateCongeDTO dto) {
@@ -53,6 +61,15 @@ public class CongeService {
         conge.setStatut(StatutConge.EN_ATTENTE);
 
         Conge saved = congeRepository.save(conge);
+
+
+        // 🔔 NOTIFICATION: Envoyer une notification à l'ADMIN
+        User admin = userRepository.findByRole("ADMIN");
+        if (admin != null) {
+            String message = "Nouvelle demande de congé de " + employe.getNom() + " " + employe.getPrenom();
+            notificationService.sendNotification(admin.getId(), message);
+        }
+
         return mapToDTO(saved);
     }
 
@@ -89,6 +106,10 @@ public class CongeService {
         conge.setStatut(StatutConge.APPROUVE);
         employeRepository.save(employe);
 
+        // 🔔 NOTIFICATION: Notification à l'employé
+        String messageApprobation = "Votre demande de congé a été approuvée.";
+        notifyEmploye(employe, messageApprobation);
+
         return mapToDTO(conge);
     }
 
@@ -99,8 +120,24 @@ public class CongeService {
         conge.setStatut(StatutConge.REJETE);
         congeRepository.save(conge);
 
+        // 🔔 NOTIFICATION: Notification à l'employé
+        Employe employe = conge.getEmploye();
+        String messageRejet = "Votre demande de congé a été refusée.";
+        notifyEmploye(employe, messageRejet);
+
         return mapToDTO(conge);
     }
+
+    // Méthode privée pour notifier l'employé
+    private void notifyEmploye(Employe employe, String message) {
+        // Trouver l'utilisateur associé à l'employé
+        User user = userRepository.findByEmploye(employe);
+        if (user != null) {
+            // Notification dans l'application
+            notificationService.sendNotification(user.getId(), message);
+        }
+    }
+    
     // mapper
     private CongeResponseDTO mapToDTO(Conge conge) {
         CongeResponseDTO dto = new CongeResponseDTO();

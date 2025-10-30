@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import com.example.Backend.model.entity.Employe;
 import com.example.Backend.model.entity.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -12,4 +13,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Méthode pour retrouver un user par l'email de l'employé lié
     Optional<User> findByEmployeEmail(String email);
+    User findByRole(String role); // Pour trouver le manager
+    User findByEmploye(Employe employe);
 }
